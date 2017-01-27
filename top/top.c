@@ -95,6 +95,7 @@ static unsigned Pg2K_shft = 0;
 static int         Cpu_faux_tot;
 static float       Cpu_pmax;
 static const char *Cpu_States_fmts;
+static const float Cpu_extra_push_over_the_cliff_factor = 1.1;
 
         /* Specific process id monitoring support */
 static pid_t Monpids [MONPIDMAX] = { 0 };
@@ -2308,7 +2309,7 @@ static void zap_fieldstab (void) {
 
 #ifdef BOOST_PERCNT
    Cpu_pmax = 99.9;
-   Fieldstab[EU_CPU].width = 5;
+   Fieldstab[EU_CPU].width = 5 + 1;
    if (Rc.mode_irixps && smp_num_cpus > 1 && !Thread_mode) {
       Cpu_pmax = 100.0 * smp_num_cpus;
       if (smp_num_cpus > 10) {
@@ -2319,7 +2320,7 @@ static void zap_fieldstab (void) {
    }
 #else
    Cpu_pmax = 99.9;
-   Fieldstab[EU_CPU].width = 4;
+   Fieldstab[EU_CPU].width = 4 + 1;
    if (Rc.mode_irixps && smp_num_cpus > 1 && !Thread_mode) {
       Cpu_pmax = 100.0 * smp_num_cpus;
       if (smp_num_cpus > 10) {
@@ -2327,7 +2328,7 @@ static void zap_fieldstab (void) {
       } else {
          if (Cpu_pmax > 999.9) Cpu_pmax = 999.9;
       }
-      Fieldstab[EU_CPU].width = 5;
+      Fieldstab[EU_CPU].width = 5 + 1;
    }
 #endif
 
@@ -5395,6 +5396,7 @@ static const char *task_show (const WIN_t *q, const proc_t *p) {
              ( thanks Jaromir Capik <jcapik@redhat.com> ) */
             if (u > 100.0 * p->nlwp) u = 100.0 * p->nlwp;
             if (u > Cpu_pmax) u = Cpu_pmax;
+            u *= Cpu_extra_push_over_the_cliff_factor;
             cp = scale_pcnt(u, W, Jn);
          }
             break;
